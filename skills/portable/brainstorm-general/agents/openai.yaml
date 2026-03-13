@@ -1,0 +1,4 @@
+interface:
+  display_name: "Brainstorm General"
+  short_description: "Turn rough ideas into tested execution plans"
+  default_prompt: "Use $brainstorm-general to turn this rough idea into clear options, a test plan, and a concrete implementation path."

@@ -98,13 +98,13 @@ link_skill_dir() {
   if [[ -L "$dest/$name" ]]; then
     # Already a symlink — check if it points to us
     if [[ "$(readlink "$dest/$name")" == "$src" ]]; then
-      ((skipped++))
+      ((skipped++)) || true
       return
     fi
     rm "$dest/$name"
   elif [[ -d "$dest/$name" ]]; then
     echo "  ⚠️  Skipping $name — real directory exists at $dest/$name"
-    ((skipped++))
+    ((skipped++)) || true
     return
   fi
 
@@ -114,7 +114,7 @@ link_skill_dir() {
     mkdir -p "$dest"
     ln -s "$src" "$dest/$name"
   fi
-  ((installed++))
+  ((installed++)) || true
 }
 
 link_skill_claude() {
@@ -129,13 +129,13 @@ link_skill_claude() {
 
   if [[ -L "$dest_file" ]]; then
     if [[ "$(readlink "$dest_file")" == "$skill_md" ]]; then
-      ((skipped++))
+      ((skipped++)) || true
       return
     fi
     rm "$dest_file"
   elif [[ -f "$dest_file" ]]; then
     echo "  ⚠️  Skipping $name — real file exists at $dest_file"
-    ((skipped++))
+    ((skipped++)) || true
     return
   fi
 
@@ -145,7 +145,7 @@ link_skill_claude() {
     mkdir -p "$CLAUDE_COMMANDS"
     ln -s "$skill_md" "$dest_file"
   fi
-  ((installed++))
+  ((installed++)) || true
 }
 
 install_category() {

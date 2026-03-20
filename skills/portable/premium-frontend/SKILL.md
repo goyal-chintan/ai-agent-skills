@@ -15,9 +15,36 @@ description: Use when building any web UI — components, pages, dashboards, or 
 - Pre-delivery quality gates (accessibility, motion, responsive)
 - Industry context mapping
 
+## Design Brief Protocol
+
+**Before writing any code**, run this brief — it replaces 2–3 iteration rounds.
+
+Ask the user these questions (all at once, not one by one):
+
+> 1. **Visual reference** — Name 2–3 apps, websites, or brands whose design you love. (e.g. "Linear, Stripe, the Apple website")
+> 2. **Feeling** — What should the UI make the user feel? Pick words: *focused / calm / energetic / bold / trustworthy / playful / serious / luxurious / minimal / expressive*
+> 3. **Color instinct** — Any colors you love, hate, or already use in this project?
+> 4. **Density** — Dense with information (like Notion, GitHub) or spacious and breathable (like Linear, Loom)?
+> 5. **Context** — Who uses this and when? (e.g. "a developer at a desktop all day" vs "a customer on mobile quickly")
+
+**Translate answers into design decisions before coding:**
+
+| User says | Design decision |
+|---|---|
+| "Like Linear" | Near-black bg, tight spacing, monospace accents, minimal color |
+| "Like Airbnb" | Warm neutrals, generous white space, rounded cards, photography-forward |
+| "Like Stripe" | Deep navy + electric purple, dense but structured, heavy typography |
+| "Calm and focused" | Low saturation, generous spacing, restrained animation, high contrast text |
+| "Bold and energetic" | High contrast, strong accent, faster transitions, asymmetric layout |
+| "Trustworthy" | Conservative palette, clear hierarchy, no decorative noise |
+| "Dense" | 12–14px body type, tighter spacing tokens, data-table mindset |
+| "Spacious" | 16px+ body type, generous padding, card-based layout |
+
+If the user can't answer, propose two directions (e.g. "Option A: dark and focused like Linear; Option B: light and warm like Notion") and ask which resonates more.
+
 ## Design Context Protocol
 
-**Before any code**, answer these four questions:
+**Once the brief is complete**, confirm these four technical parameters:
 
 1. **Industry** → selects palette personality and typography register
 2. **Primary action** → determines information density (sparse vs. dense)
@@ -83,6 +110,7 @@ Before declaring any UI done:
 
 ## Reference Files
 
+- [natural-language-design.md](reference/natural-language-design.md) — Visual brands → design DNA, feeling words → choices, iteration prevention
 - [typography.md](reference/typography.md) — Fluid type, modular scale, font loading, OpenType features
 - [color-and-contrast.md](reference/color-and-contrast.md) — OKLCH, WCAG ratios, tinted neutrals, dark mode
 - [motion-design.md](reference/motion-design.md) — Timing rules, easing curves, GPU-safe properties

@@ -25,16 +25,17 @@ ANTIGRAVITY_SKILLS="$HOME/.gemini/antigravity/skills"
 COPILOT_SKILLS="${COPILOT_HOME:-$HOME/.copilot}"
 
 usage() {
+  local code="${1:-0}"
   cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
 Install AI agent skills via symlinks.
 
 Options:
-  --codex           Install for Codex (~/.codex/skills/)
-  --claude          Install for Claude Code (~/.claude/commands/)
-  --antigravity     Install for Antigravity (~/.gemini/antigravity/skills/)
-  --copilot         Install for GitHub Copilot CLI (~/.copilot/<skill>.md)
+  --codex           Install for Codex
+  --claude          Install for Claude Code
+  --antigravity     Install for Antigravity
+  --copilot         Install for GitHub Copilot CLI
   --all             Install for all agents (default if none specified)
   --portable-only   Only install portable skills (skip tools & integrations)
   --dry-run         Show what would be done without doing it
@@ -46,7 +47,7 @@ Examples:
   ./install.sh --copilot --codex        # Install for Copilot and Codex only
   ./install.sh --all --portable-only    # Only portable skills, all agents
 EOF
-  exit 0
+  exit "$code"
 }
 
 # ── Parse args ──────────────────────────────────────────────
@@ -60,8 +61,8 @@ while [[ $# -gt 0 ]]; do
     --portable-only) PORTABLE_ONLY=true ;;
     --dry-run)      DRY_RUN=true ;;
     --uninstall)    UNINSTALL=true ;;
-    -h|--help)      usage ;;
-    *) echo "Unknown option: $1" >&2; usage ;;
+    -h|--help)      usage 0 ;;
+    *) echo "Unknown option: $1" >&2; usage 1 ;;
   esac
   shift
 done
@@ -84,20 +85,26 @@ if [[ "${UNINSTALL:-false}" == "true" ]]; then
     if [[ -d "$dir" ]]; then
       while IFS= read -r link; do
         target="$(readlink "$link" || true)"
-        if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+        if [[ "$target" == "$SKILLS_DIR/"* ]]; then
+          rm -v "$link"
+        fi
       done < <(find "$dir" -maxdepth 1 -type l)
     fi
   done
   if [[ -d "$CLAUDE_COMMANDS" ]]; then
     while IFS= read -r link; do
       target="$(readlink "$link" || true)"
-      if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+      if [[ "$target" == "$SKILLS_DIR/"* ]]; then
+        rm -v "$link"
+      fi
     done < <(find "$CLAUDE_COMMANDS" -maxdepth 1 -type l -name "*.md")
   fi
   if [[ -d "$COPILOT_SKILLS" ]]; then
     while IFS= read -r link; do
       target="$(readlink "$link" || true)"
-      if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+      if [[ "$target" == "$SKILLS_DIR/"* ]]; then
+        rm -v "$link"
+      fi
     done < <(find "$COPILOT_SKILLS" -maxdepth 1 -type l -name "*.md")
   fi
   echo "✅ Uninstall complete."

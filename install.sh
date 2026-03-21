@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────
 # AI Agent Skills — Installer
-# Symlinks skills into Claude, Codex, and/or Antigravity
+# Symlinks skills into Claude, Codex, Copilot, and/or Antigravity
 # ─────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +13,7 @@ SKILLS_DIR="$SCRIPT_DIR/skills"
 INSTALL_CODEX=false
 INSTALL_CLAUDE=false
 INSTALL_ANTIGRAVITY=false
+INSTALL_COPILOT=false
 INSTALL_ALL=false
 PORTABLE_ONLY=false
 DRY_RUN=false
@@ -21,6 +22,7 @@ DRY_RUN=false
 CODEX_SKILLS="${CODEX_HOME:-$HOME/.codex}/skills"
 CLAUDE_COMMANDS="$HOME/.claude/commands"
 ANTIGRAVITY_SKILLS="$HOME/.gemini/antigravity/skills"
+COPILOT_SKILLS="${COPILOT_HOME:-$HOME/.copilot}"
 
 usage() {
   cat <<EOF
@@ -29,9 +31,10 @@ Usage: $(basename "$0") [OPTIONS]
 Install AI agent skills via symlinks.
 
 Options:
-  --codex           Install for Codex
-  --claude          Install for Claude Code
-  --antigravity     Install for Antigravity
+  --codex           Install for Codex (~/.codex/skills/)
+  --claude          Install for Claude Code (~/.claude/commands/)
+  --antigravity     Install for Antigravity (~/.gemini/antigravity/skills/)
+  --copilot         Install for GitHub Copilot CLI (~/.copilot/<skill>.md)
   --all             Install for all agents (default if none specified)
   --portable-only   Only install portable skills (skip tools & integrations)
   --dry-run         Show what would be done without doing it
@@ -40,7 +43,7 @@ Options:
 
 Examples:
   ./install.sh --all                    # Install everything for all agents
-  ./install.sh --codex --claude         # Install for Codex and Claude only
+  ./install.sh --copilot --codex        # Install for Copilot and Codex only
   ./install.sh --all --portable-only    # Only portable skills, all agents
 EOF
   exit 0
@@ -52,24 +55,26 @@ while [[ $# -gt 0 ]]; do
     --codex)        INSTALL_CODEX=true ;;
     --claude)       INSTALL_CLAUDE=true ;;
     --antigravity)  INSTALL_ANTIGRAVITY=true ;;
+    --copilot)      INSTALL_COPILOT=true ;;
     --all)          INSTALL_ALL=true ;;
     --portable-only) PORTABLE_ONLY=true ;;
     --dry-run)      DRY_RUN=true ;;
     --uninstall)    UNINSTALL=true ;;
     -h|--help)      usage ;;
-    *) echo "Unknown option: $1"; usage ;;
+    *) echo "Unknown option: $1" >&2; usage ;;
   esac
   shift
 done
 
 # Default to --all if nothing specified
-if ! $INSTALL_CODEX && ! $INSTALL_CLAUDE && ! $INSTALL_ANTIGRAVITY && ! $INSTALL_ALL; then
+if ! $INSTALL_CODEX && ! $INSTALL_CLAUDE && ! $INSTALL_ANTIGRAVITY && ! $INSTALL_COPILOT && ! $INSTALL_ALL; then
   INSTALL_ALL=true
 fi
 if $INSTALL_ALL; then
   INSTALL_CODEX=true
   INSTALL_CLAUDE=true
   INSTALL_ANTIGRAVITY=true
+  INSTALL_COPILOT=true
 fi
 
 # ── Uninstall mode ──────────────────────────────────────────
@@ -77,11 +82,23 @@ if [[ "${UNINSTALL:-false}" == "true" ]]; then
   echo "🗑  Removing symlinked skills..."
   for dir in "$CODEX_SKILLS" "$ANTIGRAVITY_SKILLS"; do
     if [[ -d "$dir" ]]; then
-      find "$dir" -maxdepth 1 -type l -lname "*ai-agent-skills*" -exec rm -v {} \;
+      while IFS= read -r link; do
+        target="$(readlink "$link" || true)"
+        if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+      done < <(find "$dir" -maxdepth 1 -type l)
     fi
   done
   if [[ -d "$CLAUDE_COMMANDS" ]]; then
-    find "$CLAUDE_COMMANDS" -maxdepth 1 -type l -lname "*ai-agent-skills*" -exec rm -v {} \;
+    while IFS= read -r link; do
+      target="$(readlink "$link" || true)"
+      if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+    done < <(find "$CLAUDE_COMMANDS" -maxdepth 1 -type l -name "*.md")
+  fi
+  if [[ -d "$COPILOT_SKILLS" ]]; then
+    while IFS= read -r link; do
+      target="$(readlink "$link" || true)"
+      if [[ "$target" == "$SKILLS_DIR/"* ]]; then rm -v "$link"; fi
+    done < <(find "$COPILOT_SKILLS" -maxdepth 1 -type l -name "*.md")
   fi
   echo "✅ Uninstall complete."
   exit 0
@@ -123,7 +140,8 @@ link_skill_claude() {
   local skill_md="$src/SKILL.md"
   local dest_file="$CLAUDE_COMMANDS/$name.md"
 
-  if [[ ! -f "$skill_md" ]]; then
+  if [[ ! -s "$skill_md" ]]; then
+    [[ -f "$skill_md" ]] && echo "  ⚠️  Skipping $name — SKILL.md is empty"
     return
   fi
 
@@ -133,8 +151,8 @@ link_skill_claude() {
       return
     fi
     rm "$dest_file"
-  elif [[ -f "$dest_file" ]]; then
-    echo "  ⚠️  Skipping $name — real file exists at $dest_file"
+  elif [[ -e "$dest_file" ]]; then
+    echo "  ⚠️  Skipping $name — path already exists at $dest_file"
     ((skipped++)) || true
     return
   fi
@@ -143,6 +161,38 @@ link_skill_claude() {
     echo "  [dry-run] ln -s $skill_md → $dest_file"
   else
     mkdir -p "$CLAUDE_COMMANDS"
+    ln -s "$skill_md" "$dest_file"
+  fi
+  ((installed++)) || true
+}
+
+link_skill_copilot() {
+  local src="$1" name
+  name="$(basename "$src")"
+  local skill_md="$src/SKILL.md"
+  local dest_file="$COPILOT_SKILLS/$name.md"
+
+  if [[ ! -s "$skill_md" ]]; then
+    [[ -f "$skill_md" ]] && echo "  ⚠️  Skipping $name — SKILL.md is empty"
+    return
+  fi
+
+  if [[ -L "$dest_file" ]]; then
+    if [[ "$(readlink "$dest_file")" == "$skill_md" ]]; then
+      ((skipped++)) || true
+      return
+    fi
+    rm "$dest_file"
+  elif [[ -e "$dest_file" ]]; then
+    echo "  ⚠️  Skipping $name — path already exists at $dest_file"
+    ((skipped++)) || true
+    return
+  fi
+
+  if $DRY_RUN; then
+    echo "  [dry-run] ln -s $skill_md → $dest_file"
+  else
+    mkdir -p "$COPILOT_SKILLS"
     ln -s "$skill_md" "$dest_file"
   fi
   ((installed++)) || true
@@ -169,6 +219,9 @@ install_category() {
     if $INSTALL_CLAUDE; then
       link_skill_claude "$skill_dir"
     fi
+    if $INSTALL_COPILOT; then
+      link_skill_copilot "$skill_dir"
+    fi
   done
 }
 
@@ -185,6 +238,7 @@ agents=()
 $INSTALL_CODEX && agents+=("Codex")
 $INSTALL_CLAUDE && agents+=("Claude")
 $INSTALL_ANTIGRAVITY && agents+=("Antigravity")
+$INSTALL_COPILOT && agents+=("Copilot")
 echo "   Agents: ${agents[*]}"
 
 categories=("portable")

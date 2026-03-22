@@ -73,6 +73,8 @@ Functional evidence is also required for approval:
 
 If functional evidence is missing, return `BLOCKED` with "insufficient functional evidence".
 
+**Functional evidence is not optional and cannot be waived.** A code-diff-only review is insufficient regardless of code quality. Before any review begins, the reviewer must confirm that live execution screenshots or screen recordings exist for every critical flow. If they do not exist, the review must stop and return `BLOCKED` — not proceed with assumptions.
+
 ## Hard Auto-Block Rules
 
 Any single trigger below forces verdict `BLOCKED`:
@@ -88,6 +90,9 @@ Any single trigger below forces verdict `BLOCKED`:
 - **a configurable option appears in a transient surface (popover, menu) instead of its canonical Settings location**
 - **an OS integration (calendar, reminders, notifications, health) is enabled in UI but no evidence it actually reads/writes real data**
 - **after OS permission dialog, the app does not restore focus to the active window**
+- **a text input field uses a single-line widget (TextField) for content that is naturally multi-line (achievements, notes, descriptions, reflections)**
+- **a form creates data without a corresponding path to delete or correct that data (CRUD completeness violation)**
+- **a form asks the user to input a computed value they don't naturally know (user mental model mismatch — e.g., asking for "duration" when the user knows "start time" and "end time")**
 
 Full policy: [auto-block-rules.md](reference/auto-block-rules.md)
 
@@ -162,6 +167,10 @@ If any trigger is true, verdict cannot be `PASS`:
 - missing UI visual/interaction decisions in spec matrix
 - **integration feature present but no end-to-end data flow verified**
 - **form/sheet uses native styling instead of app design system**
+- **review was code-only — no live execution evidence for any critical flow**
+- **form input widget types not explicitly reviewed (TextField vs TextEditor vs picker)**
+- **CRUD completeness not checked — create/write operation present but delete path not verified**
+- **user mental model not verified — form inputs not checked against what user naturally knows at point of entry**
 
 Checklist: [diagnose-weak-output.md](reference/diagnose-weak-output.md)
 
@@ -222,3 +231,7 @@ Minimum required scenario coverage:
 - **feature placement (popover vs content vs settings)**
 - **feature ideation-to-journey completeness**
 - **UI spec matrix completeness**
+- **input widget type correctness (TextField vs TextEditor for multi-line content)**
+- **CRUD completeness (create without delete = BLOCKED)**
+- **user mental model match (form inputs match what user naturally knows)**
+- **live execution evidence required (code-only review = BLOCKED)**

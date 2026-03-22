@@ -172,3 +172,56 @@ Expected:
 - requires single-trigger verification: search for all code paths that trigger the same side effect
 - requires regression evidence: after fix, verify adjacent flows still work
 - prescribes: consolidate to one trigger, use proper state management, log errors instead of swallowing
+
+## 16) Wrong Input Widget For Content Type
+
+Setup:
+- a "notes", "achievement", "description", or "reflection" field uses a single-line `TextField`
+- the user attempts to write a multi-line entry and cannot because the input does not expand or accept newlines
+
+Expected:
+- review returns `BLOCKED`
+- identifies the field name, current widget type, and required widget type
+- confirms that `TextEditor` (or equivalent multiline widget) is required for any content that may span multiple sentences or lines
+- verifies the replacement widget uses the app's design system (glass effect, correct padding, placeholder via ZStack overlay)
+
+## 17) Missing Input For User's Natural Information
+
+Setup:
+- a "Log Session" form asks the user to enter a "Duration" (15 / 25 / 45 / 60 min presets)
+- the user knows they started at 2:00pm and finished at 3:20pm, but does not know the exact duration
+- the form has no "Ended at" field — the user must mentally compute 80 minutes and enter it manually
+
+Expected:
+- review returns `BLOCKED` on user mental model mismatch
+- identifies that the user naturally possesses a start time and end time, not a duration
+- requires the form to accept start + end time and derive duration, not the reverse
+- if both duration preset AND end time picker are present for flexibility, this check passes
+
+## 18) CRUD Completeness Violation
+
+Setup:
+- a feature allows the user to log, create, or record data (sessions, entries, records)
+- no delete or remove path exists — incorrect data cannot be corrected
+- the session list shows entries from testing that the user cannot remove
+
+Expected:
+- review returns `BLOCKED` on CRUD completeness violation
+- identifies the create surface and the missing delete surface
+- requires a delete action protected by a destructive confirmation dialog (no undo required if confirmation exists)
+- verifies the delete removes all child records (cascade) to prevent orphaned data
+
+## 19) Code-Only Review (No Live Execution Evidence)
+
+Setup:
+- reviewer reads the code and diff carefully
+- reviewer issues a `PASS` verdict
+- no screenshots, screen recordings, or console logs from running the app are provided
+- a data-sync bug exists: after a manual action, a derived value in another view does not update
+  (e.g., menu bar total does not refresh after logging a session manually)
+
+Expected:
+- review returns `BLOCKED` immediately at the evidence check stage
+- the block fires before any code analysis begins: "rendered evidence missing — cannot proceed"
+- the data-sync bug (which is invisible in code but immediately visible on screen) is cited as proof of why live execution is mandatory
+- reviewer must provide at minimum: screenshot of the UI before the action, screenshot after the action, and confirmation that all derived values updated correctly

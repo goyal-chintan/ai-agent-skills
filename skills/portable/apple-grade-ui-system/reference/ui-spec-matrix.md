@@ -42,6 +42,9 @@ Complete this matrix for every feature before `PASS`.
 - progressive disclosure strategy
 - validation behavior (inline + submit)
 - error and recovery messaging
+- **input widget type matches content type**: single-line `TextField` only for short identifiers or labels; `TextEditor` (or equivalent multiline widget) required for any field where the user may enter multiple sentences, bullet points, or line breaks — reviewer must explicitly confirm this for every text input
+- **user mental model check**: for each input field, ask "what information does the user *naturally possess* when they arrive at this form?" — if the form forces the user to *compute* a value they don't have (e.g., duration when they only know start and end time), the form design fails this check and must be revised to accept the user's native information
+- **CRUD completeness**: for every `create` or `write` operation in a form, verify a corresponding `edit` and `delete` path exists; if a user can create incorrect data, they must be able to correct or remove it
 
 ## 7) Dialog / Box Design
 

@@ -33,6 +33,8 @@ Guarantee the feature belongs in the right place, behaves coherently across scre
 - `see -> click -> response -> next step` for critical paths
 - Completion outcome state
 - Failure and recovery path
+- **User mental model check**: for each input in a form or flow, confirm the user naturally *has* that information at the point of entry — if the UI asks them to compute a value they don't know (e.g., "duration" when they know "start time and end time"), redesign to accept their native input
+- **CRUD completeness check**: for every create/write operation, confirm a matching delete/remove path exists; if a user can enter incorrect data, they must be able to remove it; absence of delete is a journey discontinuity
 
 5. Consistency audit
 - Naming consistency across screens
@@ -70,6 +72,8 @@ Return `BLOCKED` if any is true:
 - UI spec matrix is incomplete
 - data flow trace missing for features that fetch external data
 - button-action integrity not verified for interactive elements
+- **user mental model check failed**: form inputs require the user to compute values they don't naturally possess
+- **CRUD completeness violated**: a create/write operation exists without a corresponding delete/remove path
 
 ## Output Template
 

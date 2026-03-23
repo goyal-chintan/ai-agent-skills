@@ -50,6 +50,20 @@ Produce premium UI with strong visual craft and clear user flow, not style-only 
 - Confirm each action has exactly ONE code path that triggers it. Duplicate triggers (e.g., both a callback and an `.onChange` handler firing the same side effect) cause race conditions and must be consolidated.
 - Confirm destructive actions (delete, discard, end session) have either a confirmation step or an undo path.
 
+5.6. Verify interaction ergonomics at design time
+This step must be completed BEFORE implementation begins. Catching ergonomic failures at design time costs nothing; fixing them post-build is expensive.
+- **Hit targets**: for every tappable element in the design — is it reachable without precision aim? Check: will a user's finger or cursor land reliably in one motion? Any control smaller than 44×44pt must use invisible padding or `.contentShape(Rectangle())` to expand its hit area. Document the expansion strategy in the spec.
+- **Full-row tappability**: any expandable row, accordion, list item, or calendar cell — the full row must be the hit target, not just the indicator chevron. Do not use `DisclosureGroup` without replacing its label with a full-row `Button`.
+- **Input modality match**: any selection with 2+ analog/ordinal steps — is a slider, stepper, or adequately-spaced segmented control used? Radio buttons and small discrete targets are not acceptable for continuous values. Document the chosen control and segment size.
+- **Text overflow strategy**: for every text field with variable-length or user-generated content — explicitly declare the overflow strategy (wrapping, scroll, tap-to-expand). Single-line truncation of user data is never acceptable. Document `.lineLimit(nil)` or the expansion path.
+- **Tap response immediacy**: every tap must produce visual feedback within 100ms. For async operations, a visual state change (loading, highlight, opacity) must occur immediately on tap — not after the async work completes.
+
+5.7. Verify glass and material composition
+- When using glass effects (`.ultraThinMaterial`, `.glassEffect()`, `.glassProminent`), verify the surface has blurrable content behind it. Glass on a solid background is a flat grey rectangle — use `.background(Color.x)` or a dark overlay instead.
+- Never apply `.tint()` to a glass button style — use `.foregroundStyle()` on the label content only. Tint on glass creates opaque color blobs that destroy translucency.
+- Never stack two material layers (e.g., `.ultraThinMaterial` background under a `LiquidGlassPanel`). Use exactly one compositing layer per surface depth.
+- Verify in both light and dark mode: glass effects behave differently under the two modes and must be tested visually in both.
+
 6. Check coherence
 - Ensure navigation placement is consistent across screens.
 - Ensure terminology, iconography, and state language are consistent.
@@ -61,6 +75,13 @@ Produce premium UI with strong visual craft and clear user flow, not style-only 
 - Ensure error paths have both logging (for developers) AND user feedback (for users).
 - Verify that fixing one flow does not break adjacent flows — document which adjacent flows were tested.
 - Reject timing workarounds (`sleep`, `asyncAfter`) that mask race conditions instead of fixing them.
+
+8. Visual Change Consent Check
+- Split proposed changes into:
+  - **functional fixes** (must implement)
+  - **style recommendations** (approval-gated)
+- For each style recommendation, provide plain-language visual delta and rationale.
+- Do not implement style recommendations until explicit user approval is given.
 
 ## Design Deliverable
 

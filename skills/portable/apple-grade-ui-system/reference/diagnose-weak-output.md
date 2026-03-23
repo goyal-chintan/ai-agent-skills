@@ -89,9 +89,82 @@ Fail if any fix uses shortcuts instead of addressing root cause:
 - hardcoded magic values without documented rationale
 - fix for bug A introduces or re-introduces bug B
 
+## Trigger 12: Interaction Ergonomics Unaudited
+
+Fail if any interactive screen was reviewed without explicitly checking:
+- hit target sizes — any tappable element not verified to meet ≥44×44pt (visual size OR `.contentShape`/padding expansion)
+- full-row tappability — any `DisclosureGroup`, list row, expandable section, or compound tap container not verified to register taps on the full visible area (not just a sub-element indicator)
+- text overflow strategy — any variable-length or user-generated text field not explicitly declared as wrapping (`.lineLimit(nil)`), truncating with recovery (tap-to-expand), or scrollable
+- input modality precision — any continuous/ordinal selector (effort, intensity, score, rating) not verified to use a low-precision input (slider, stepper, large segmented control) instead of small radio buttons or precision tap targets
+- chip / compact interactive element minimum area — any chip, tag, filter pill, or compact button not verified to have ≥44pt interactive height via `.frame(minHeight: 44)` or padding
+
+Note: this trigger fires even if none of the above are *broken* — it fires if they were not *checked*. The reviewer must document that each was audited, not just assume they're fine.
+
 ## Trigger Handling
 
 If any trigger fails:
 - verdict cannot be `PASS`
 - add blocker in "Critical Blockers"
 - include minimum corrective action
+
+## Trigger 13: Accessibility Unaudited
+
+Fail if any screen with interactive elements was reviewed without checking:
+- VoiceOver labels on every non-decorative interactive element (buttons, toggles, custom controls, icon-only buttons)
+- color-only state indicators — every color-coded status has a secondary non-color signal
+- decorative elements marked `.accessibilityHidden(true)` to prevent VoiceOver noise
+- focus management — after modal/sheet dismiss, focus returns to a meaningful element
+
+Note: this trigger fires if these checks were not performed — not only if violations exist. The reviewer must document that each was audited.
+
+## Trigger 14: Dark Mode and Color Adaptability Unverified
+
+Fail if:
+- review was conducted with screenshots in only one mode (light OR dark, not both)
+- any hardcoded `Color(.white)`, `Color(.black)`, or RGB value exists in reviewed components without being flagged
+- glass/material effects were reviewed without verifying the background has blurrable content
+- reviewer assumed semantic token correctness from code alone without visual verification
+
+## Trigger 15: Notification and Coaching Copy Not Read
+
+Fail if the feature includes notifications, coach messages, or any system-initiated communication, and:
+- the actual copy text was not read and evaluated by the reviewer
+- copy is identical across all user contexts (same user, same state, always same message)
+- no user-specific data point (idle time, app usage, session count, time of day context) is present in coaching messages
+- reviewer approved notification design without verifying the tap action deep-links to the correct screen
+
+## Trigger 16: Visual Change Without Consent
+
+Fail if:
+- reviewer/implementer changed non-functional visual language (color tone, style, iconography tone, decorative motion) without explicit user confirmation
+- output did not separate recommendations from implemented functional fixes
+- autonomous/autopilot execution applied style deltas directly instead of deferring pending approval
+
+## Trigger 17: Prominent CTA Contrast Invariant Not Verified
+
+Fail if:
+- review includes prominent/filled primary CTA usage (`.glassProminent` or equivalent) but does not verify foreground/background contrast behavior across configured tints
+- reviewer assumes contrast correctness from design tokens without rendered validation
+- shared CTA component allows tint to drive both fill and label/icon foreground in a way that can produce same-hue collisions
+
+## Trigger 18: Transition Intent Not Classified
+
+Fail if:
+- transition changes are reviewed/approved without explicit intent classification (disclosure/fold vs transient feedback)
+- disclosure/fold transitions are allowed to translate container layout (`.move(edge: ...)`) without explicit justification and visual evidence
+- output does not include the transition classification table/list for reviewed interactions
+
+## Trigger 19: First-Run Geometry Stability Not Checked
+
+Fail if:
+- popover/sheet/window sizing behavior is reviewed only in steady state, without initial render + first interaction checks
+- first-toggle/open width/height behavior has no evidence (video/screenshot sequence/log)
+- review does not explicitly confirm "no abrupt geometry jump" for first-run paths
+
+## Trigger 20: Window/Popover Orchestration Not Audited
+
+Fail if:
+- review does not provide action-to-surface lifecycle mapping for commit actions (start/resume/continue)
+- strong prompt escalation path is approved without checking single-surface behavior (no popover + window duplication)
+- activation/foreground behavior is reviewed without an explicit escalation policy
+- popover close behavior after commit actions is assumed but not evidenced

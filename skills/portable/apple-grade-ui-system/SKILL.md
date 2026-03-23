@@ -37,6 +37,7 @@ Do not use this skill for backend-only, infra-only, or non-UI work.
 3. Run `Gatekeeper Review Mode` before claiming completion.
 4. Run the functional-depth gate before final verdict.
 5. If review verdict is `BLOCKED`, fixes are mandatory before approval.
+6. For any non-functional visual language change (color, typography tone, motion style, iconography style, decorative glass treatment), present recommendation + visual delta first and wait for explicit user approval before implementation.
 
 Details:
 - Design workflow: [design-mode.md](reference/design-mode.md)
@@ -57,6 +58,21 @@ A feature cannot pass unless all artifacts below are complete:
 - UI Spec Matrix completion for all affected surfaces
 
 Missing artifacts force `BLOCKED`.
+
+## Visual Change Consent Gate (Required)
+
+This framework distinguishes **functional correctness fixes** from **visual-language changes**:
+
+- Functional correctness fixes (crashes, broken interactions, <44pt hit targets, text clipping, unreadable contrast) may be implemented directly.
+- Visual-language changes (palette/tone/style shifts that are not strictly required to restore function) require explicit user confirmation before code changes.
+
+Mandatory behavior:
+- If a style change is proposed, output a recommendation block with:
+  - what changes visually
+  - why it helps
+  - fallback option that preserves current style language
+- If user confirmation is missing, do **not** implement that visual change.
+- In autonomous/autopilot execution, leave style changes as warnings/recommendations only until approved.
 
 ## Inputs Required For Review
 
@@ -93,6 +109,23 @@ Any single trigger below forces verdict `BLOCKED`:
 - **a text input field uses a single-line widget (TextField) for content that is naturally multi-line (achievements, notes, descriptions, reflections)**
 - **a form creates data without a corresponding path to delete or correct that data (CRUD completeness violation)**
 - **a form asks the user to input a computed value they don't naturally know (user mental model mismatch — e.g., asking for "duration" when the user knows "start time" and "end time")**
+- **any tappable element with a visible area smaller than 44×44pt that does not use `.contentShape(Rectangle())` or padding to expand the hit area to meet the minimum**
+- **a `DisclosureGroup` or expandable row where only the disclosure indicator (chevron/triangle) is tappable — not the full row label area; native `DisclosureGroup` always fails this unless the label is replaced with a full-row `Button` + `.contentShape(Rectangle())`**
+- **a continuous or multi-step analog value (effort level, intensity, score, mood) presented as radio buttons or small discrete targets requiring physical aim precision — must be replaced with a slider, stepper, or adequately spaced segmented control with ≥44pt per segment**
+- **user-generated or data-entered text (achievements, notes, reflections, session context) that can truncate to a single line with `...` and provides no tap-to-expand, scroll, or reveal path**
+- **any interactive element missing `.accessibilityLabel()` — VoiceOver must announce a meaningful action description, not silence or a raw variable name**
+- **any state, status, or category communicated exclusively through color with no secondary non-color indicator (icon, label, pattern)**
+- **any hardcoded non-semantic color value (`Color(.white)`, `Color(.black)`, hex/RGB) in a UI component that appears in both light and dark mode**
+- **any prominent CTA (`.glassProminent` or equivalent filled primary action) where text/icon foreground uses the same or near-same hue as the fill tint, causing low readability contrast**
+- **any transition update where motion intent is not explicitly classified as (a) disclosure/fold behavior vs (b) transient feedback behavior**
+- **any expandable/disclosure section that collapses with translating motion (`.move(edge: ...)`) causing the container to shift instead of folding in place**
+- **any popover/sheet/window interaction with abrupt first-run width/height jump and no geometry-stability evidence for initial render + first toggle**
+- **any commit action from menu bar popover (start/resume/continue/take-break/end-session) that does not close the popover**
+- **any single intervention decision rendered simultaneously in popover prompt and standalone coach window**
+- **any fragmented lifecycle ownership where popover close/window open/app activation are controlled from unrelated paths without explicit orchestration policy**
+- **generic notification/coaching message copy that would read identically for all users at all times — every coach or reminder message must reference actual user data or context**
+- **any user-triggered operation >1s with no visible loading indicator — the user must never wonder if the app crashed or is still working**
+- **any non-functional visual-language change (color/motion/type/icon style) implemented without explicit user approval and documented visual delta**
 
 Full policy: [auto-block-rules.md](reference/auto-block-rules.md)
 
@@ -150,7 +183,9 @@ Every Gatekeeper review must output exactly these sections:
 8. Explicit Assumptions
 9. Product Integration Artifacts Check
 10. UI Spec Matrix Completeness
-11. PM Integration Verdict
+11. Contrast and Motion Invariant Check
+12. PM Integration Verdict
+13. Approval-Gated Visual Recommendations
 
 Format spec: [review-output-contract.md](reference/review-output-contract.md)
 
@@ -171,6 +206,15 @@ If any trigger is true, verdict cannot be `PASS`:
 - **form input widget types not explicitly reviewed (TextField vs TextEditor vs picker)**
 - **CRUD completeness not checked — create/write operation present but delete path not verified**
 - **user mental model not verified — form inputs not checked against what user naturally knows at point of entry**
+- **interaction ergonomics not audited — hit target sizes, full-row tappability, text overflow strategies, and input modality precision not verified for any interactive element**
+- **accessibility not audited — VoiceOver labels, color-only state, focus management not checked for any interactive element**
+- **dark mode not verified — no visual evidence in dark mode, or hardcoded colors present in reviewed components**
+- **notification/coach copy not reviewed — message copy not checked for specificity and data-grounding**
+- **visual/style changes were implemented without explicit user confirmation and without a recommendation delta**
+- **prominent CTA contrast invariant not verified — shared CTA components can produce same-hue text/fill collisions**
+- **transition intent not classified — disclosure/fold vs transient feedback was not explicitly documented per transition**
+- **first-run geometry stability not checked — initial render + first interaction sizing behavior lacks evidence**
+- **window/popover orchestration not audited — lifecycle map and single-surface invariants were not verified**
 
 Checklist: [diagnose-weak-output.md](reference/diagnose-weak-output.md)
 
@@ -196,8 +240,18 @@ The review pipeline is fixed and ordered:
 8. **Feature Placement** (each element at correct hierarchy level — popover/content/settings/standalone)
 9. **Integration Data Flow** (OS integrations actually read/write data end-to-end)
 10. **Sheet/Form Design** (no native Form wrappers, custom design system throughout)
-11. PM Integration Lens (clarity vs complexity, fit to product model, conflict risk)
-12. Verdict (contract output + ranked fixes)
+11. **Interaction Ergonomics** (hit target sizes ≥44pt, full-row tappability on expandable rows, text overflow strategy on variable-length content, input modality precision match)
+12. **Window/Popover Orchestration** (single owner for popover close/window open/activation, commit-action close rules, single-surface prompt invariant)
+13. **Component Invariants and Contrast** (shared primitives like primary CTA buttons maintain high-contrast foreground regardless of tint/fill)
+14. **Motion Intent Classification** (every transition is classified as disclosure/fold vs transient feedback, with behavior matched accordingly)
+15. **First-Run Geometry Stability** (popover/sheet/window dimensions remain stable on initial render and first interaction)
+16. PM Integration Lens (clarity vs complexity, fit to product model, conflict risk)
+17. **Accessibility** (VoiceOver labels on interactive elements, color-only state backup indicators, focus management, decorative element hiding)
+18. **Dark Mode and Color Adaptability** (no hardcoded colors, semantic tokens, glass/material verified in both modes)
+19. **Performance and Responsiveness** (100ms tap feedback, loading indicators for >1s ops, no blocking main thread)
+20. **Notification/Coach Message Quality** (specific copy, data-grounded, action path present)
+21. **Design Ownership Consent Gate** (style changes require explicit user approval; otherwise recommendation-only)
+22. Verdict (contract output + ranked fixes)
 
 Reference: [gatekeeper-review-mode.md](reference/gatekeeper-review-mode.md)
 
@@ -235,3 +289,11 @@ Minimum required scenario coverage:
 - **CRUD completeness (create without delete = BLOCKED)**
 - **user mental model match (form inputs match what user naturally knows)**
 - **live execution evidence required (code-only review = BLOCKED)**
+- **interaction ergonomics not audited (hit targets, full-row tappability, text overflow, analog input precision)**
+- **accessibility not audited (VoiceOver labels, color-only state, focus management)**
+- **dark mode not verified (hardcoded colors, glass composition in dark mode)**
+- **notification/coach message quality not reviewed (generic vs. data-grounded copy)**
+- **prominent CTA contrast invariant not reviewed (same-hue fill/text collision risk)**
+- **motion intent classification not reviewed (fold/disclosure vs transient feedback)**
+- **first-run geometry stability not reviewed (initial toggle width/height jump risk)**
+- **window/popover orchestration not reviewed (commit-action closure, single-surface escalation, activation ownership)**

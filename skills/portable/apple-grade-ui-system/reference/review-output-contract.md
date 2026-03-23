@@ -79,7 +79,7 @@ For each required artifact, mark `Complete` or `Blocked`:
 
 ## 10) UI Spec Matrix Completeness
 
-Report completion status for:
+Report completion status for all 16 sections:
 - buttons
 - information visualization/chart choice
 - settings icons
@@ -91,16 +91,51 @@ Report completion status for:
 - colors
 - components
 - animation
+- state coverage (all component states enumerated and visually treated)
+- button integrity (label-action match, single-trigger, state validity, destructive protection)
+- implementation quality (root-cause fixes, no patches, regression evidence, error observability)
+- **interaction ergonomics** (hit target ≥44pt, full-row tappability, text overflow strategy, input modality precision)
+- **first-run geometry stability** (no abrupt size jump on initial render and first interaction)
 
-If any category is incomplete, verdict must be `BLOCKED`.
+If any category is incomplete or was not reviewed, verdict must be `BLOCKED`.
 
-## 11) PM Integration Verdict
+## 11) Contrast and Motion Invariant Check
+
+Report explicit pass/fail for:
+- prominent CTA contrast invariant (foreground remains readable against filled primary tint variants)
+- transition intent classification completeness (each reviewed transition marked disclosure/fold or transient feedback)
+- disclosure/fold non-translating collapse behavior
+
+If any invariant is unreviewed or fails, verdict must be `BLOCKED`.
+
+## 12) Window/Popover Orchestration Check
+
+Report explicit pass/fail for:
+- commit actions close popover immediately (start/resume/continue/take-break/end-session)
+- strong prompt escalation enforces single-surface behavior (no duplicate popover + window prompt)
+- lifecycle ownership is centralized (single orchestrator/policy owner)
+- app activation behavior follows explicit escalation policy
+
+If orchestration ownership is fragmented or any check is missing, verdict must be `BLOCKED`.
+
+## 13) PM Integration Verdict
 
 Provide:
 - product-model fit result
 - clarity vs complexity assessment
 - cross-feature conflict assessment
 - final PM integration verdict (`Pass` or `Blocked`)
+
+## 14) Approval-Gated Visual Recommendations
+
+List all non-functional style recommendations separately from implemented fixes:
+- recommendation
+- intended visual delta
+- reason
+- user approval status (`Approved` / `Not approved`)
+- implementation status (`Implemented` / `Deferred`)
+
+If any non-functional visual change was implemented without approval, verdict must be `BLOCKED`.
 
 ## Severity Levels
 

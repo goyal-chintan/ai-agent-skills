@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────
 # AI Agent Skills — Installer
-# Symlinks skills into Claude, Codex, Copilot, and/or Antigravity
+# Symlinks skills into Claude, Codex, OpenCode, Copilot, and/or Antigravity
 # ─────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,6 +12,7 @@ SKILLS_DIR="$SCRIPT_DIR/skills"
 # Defaults
 INSTALL_CODEX=false
 INSTALL_CLAUDE=false
+INSTALL_OPENCODE=false
 INSTALL_ANTIGRAVITY=false
 INSTALL_COPILOT=false
 INSTALL_ALL=false
@@ -23,6 +24,7 @@ CODEX_SKILLS="${CODEX_HOME:-$HOME/.codex}/skills"
 CLAUDE_COMMANDS="$HOME/.claude/commands"
 ANTIGRAVITY_SKILLS="$HOME/.gemini/antigravity/skills"
 COPILOT_SKILLS="${COPILOT_HOME:-$HOME/.copilot}"
+OPENCODE_SKILLS="${OPENCODE_HOME:-$HOME/.config/opencode}/skills"
 
 usage() {
   local code="${1:-0}"
@@ -34,6 +36,7 @@ Install AI agent skills via symlinks.
 Options:
   --codex           Install for Codex
   --claude          Install for Claude Code
+  --opencode        Install for OpenCode
   --antigravity     Install for Antigravity
   --copilot         Install for GitHub Copilot CLI
   --all             Install for all agents (default if none specified)
@@ -45,6 +48,7 @@ Options:
 Examples:
   ./install.sh --all                    # Install everything for all agents
   ./install.sh --copilot --codex        # Install for Copilot and Codex only
+  ./install.sh --opencode               # Install for OpenCode only
   ./install.sh --all --portable-only    # Only portable skills, all agents
 EOF
   exit "$code"
@@ -55,6 +59,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --codex)        INSTALL_CODEX=true ;;
     --claude)       INSTALL_CLAUDE=true ;;
+    --opencode)     INSTALL_OPENCODE=true ;;
     --antigravity)  INSTALL_ANTIGRAVITY=true ;;
     --copilot)      INSTALL_COPILOT=true ;;
     --all)          INSTALL_ALL=true ;;
@@ -68,12 +73,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Default to --all if nothing specified
-if ! $INSTALL_CODEX && ! $INSTALL_CLAUDE && ! $INSTALL_ANTIGRAVITY && ! $INSTALL_COPILOT && ! $INSTALL_ALL; then
+if ! $INSTALL_CODEX && ! $INSTALL_CLAUDE && ! $INSTALL_OPENCODE && ! $INSTALL_ANTIGRAVITY && ! $INSTALL_COPILOT && ! $INSTALL_ALL; then
   INSTALL_ALL=true
 fi
 if $INSTALL_ALL; then
   INSTALL_CODEX=true
   INSTALL_CLAUDE=true
+  INSTALL_OPENCODE=true
   INSTALL_ANTIGRAVITY=true
   INSTALL_COPILOT=true
 fi
@@ -81,7 +87,7 @@ fi
 # ── Uninstall mode ──────────────────────────────────────────
 if [[ "${UNINSTALL:-false}" == "true" ]]; then
   echo "🗑  Removing symlinked skills..."
-  for dir in "$CODEX_SKILLS" "$ANTIGRAVITY_SKILLS"; do
+  for dir in "$CODEX_SKILLS" "$ANTIGRAVITY_SKILLS" "$OPENCODE_SKILLS"; do
     if [[ -d "$dir" ]]; then
       while IFS= read -r link; do
         target="$(readlink "$link" || true)"
@@ -223,6 +229,9 @@ install_category() {
     if $INSTALL_ANTIGRAVITY; then
       link_skill_dir "$skill_dir" "$ANTIGRAVITY_SKILLS"
     fi
+    if $INSTALL_OPENCODE; then
+      link_skill_dir "$skill_dir" "$OPENCODE_SKILLS"
+    fi
     if $INSTALL_CLAUDE; then
       link_skill_claude "$skill_dir"
     fi
@@ -244,6 +253,7 @@ fi
 agents=()
 $INSTALL_CODEX && agents+=("Codex")
 $INSTALL_CLAUDE && agents+=("Claude")
+$INSTALL_OPENCODE && agents+=("OpenCode")
 $INSTALL_ANTIGRAVITY && agents+=("Antigravity")
 $INSTALL_COPILOT && agents+=("Copilot")
 echo "   Agents: ${agents[*]}"

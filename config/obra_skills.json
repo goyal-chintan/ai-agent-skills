@@ -1,0 +1,61 @@
+{
+  "source_repo": "https://github.com/obra/superpowers.git",
+  "skills": {
+    "brainstorming": {
+      "source_path": "skills/brainstorming",
+      "dest_path": "skills/portable/brainstorming"
+    },
+    "writing-plans": {
+      "source_path": "skills/writing-plans",
+      "dest_path": "skills/portable/writing-plans"
+    },
+    "executing-plans": {
+      "source_path": "skills/executing-plans",
+      "dest_path": "skills/portable/executing-plans"
+    },
+    "dispatching-parallel-agents": {
+      "source_path": "skills/dispatching-parallel-agents",
+      "dest_path": "skills/portable/dispatching-parallel-agents"
+    },
+    "subagent-driven-development": {
+      "source_path": "skills/subagent-driven-development",
+      "dest_path": "skills/portable/subagent-driven-development"
+    },
+    "systematic-debugging": {
+      "source_path": "skills/systematic-debugging",
+      "dest_path": "skills/portable/systematic-debugging"
+    },
+    "test-driven-development": {
+      "source_path": "skills/test-driven-development",
+      "dest_path": "skills/portable/test-driven-development"
+    },
+    "verification-before-completion": {
+      "source_path": "skills/verification-before-completion",
+      "dest_path": "skills/portable/verification-before-completion"
+    },
+    "receiving-code-review": {
+      "source_path": "skills/receiving-code-review",
+      "dest_path": "skills/portable/receiving-code-review"
+    },
+    "requesting-code-review": {
+      "source_path": "skills/requesting-code-review",
+      "dest_path": "skills/portable/requesting-code-review"
+    },
+    "finishing-a-development-branch": {
+      "source_path": "skills/finishing-a-development-branch",
+      "dest_path": "skills/portable/finishing-a-development-branch"
+    },
+    "using-git-worktrees": {
+      "source_path": "skills/using-git-worktrees",
+      "dest_path": "skills/portable/using-git-worktrees"
+    },
+    "using-superpowers": {
+      "source_path": "skills/using-superpowers",
+      "dest_path": "skills/portable/using-superpowers"
+    },
+    "writing-skills": {
+      "source_path": "skills/writing-skills",
+      "dest_path": "skills/portable/writing-skills"
+    }
+  }
+}

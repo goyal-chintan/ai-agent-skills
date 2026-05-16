@@ -1,6 +1,6 @@
 # AI Agent Skills
 
-A curated library of reusable skills for AI coding assistants. Works across **Codex**, **Claude Code**, and **Antigravity**.
+A curated library of reusable skills for AI coding assistants. Works across **Claude Code**, **Codex**, **OpenCode**, **GitHub Copilot CLI**, and **Antigravity**.
 
 Each skill teaches a discipline, methodology, or tool workflow that the agent doesn't enforce natively.
 
@@ -13,9 +13,9 @@ cd ai-agent-skills
 ./install.sh --dry-run      # preview without changes
 ```
 
-## Skills (33)
+## Skills (35)
 
-### Portable (19) — Work on any agent
+### Portable (21) — Work on any agent
 
 | Skill | Category | Purpose | Upstream |
 |-------|----------|---------|----------|
@@ -38,6 +38,8 @@ cd ai-agent-skills
 | [skill-architect](skills/portable/skill-architect/SKILL.md) | Meta | Design and create reusable skills from patterns | — |
 | [skill-selector-router](skills/portable/skill-selector-router/SKILL.md) | Meta | Select best-fit skills for a given prompt | — |
 | [premium-frontend](skills/portable/premium-frontend/SKILL.md) | Design | World-class UI/UX — aesthetic direction, technical precision, anti-pattern protection | [Synthesized¹](#sources--upstream-references) |
+| [apple-grade-ui-system](skills/portable/apple-grade-ui-system/SKILL.md) | Design | Single source-of-truth UI system with Design Mode + Gatekeeper Review Mode for Apple-HIG-inspired quality | [Synthesized²](#sources--upstream-references) |
+| [technical-writing](skills/portable/technical-writing/SKILL.md) | Documentation | Structured technical writing for READMEs, Confluence pages, how-to guides, and internal docs | — |
 
 ### Tools (9) — Require external CLI tools
 
@@ -71,11 +73,13 @@ cd ai-agent-skills
 Options:
   --codex           Install for Codex (~/.codex/skills/)
   --claude          Install for Claude Code (~/.claude/commands/)
+  --opencode        Install for OpenCode (~/.config/opencode/skills/)
+  --copilot         Install for GitHub Copilot CLI (~/.copilot/<skill>.md)
   --antigravity     Install for Antigravity (~/.gemini/antigravity/skills/)
   --all             Install for all agents (default)
   --portable-only   Skip tools & integrations
   --dry-run         Preview without changes
-  --uninstall       Remove all symlinks
+  --uninstall       Remove symlinks created by this script
 ```
 
 ## Skill Structure
@@ -102,6 +106,17 @@ Follow the [writing-skills](skills/portable/writing-skills/SKILL.md) methodology
 1. **RED**: Run a scenario without the skill, document what goes wrong
 2. **GREEN**: Write the skill, verify compliance
 3. **REFACTOR**: Find loopholes, add counters, retest
+
+## Syncing Upstream Skills
+
+`scripts/sync_obra_skills.py` syncs entire skill directories (not just `SKILL.md`) from [obra/superpowers](https://github.com/obra/superpowers) for skills that have an explicit upstream mapping in `config/obra_skills.json`. Only mapped skill directories are overwritten; custom local skills are preserved and never touched by the sync.
+
+The sync reports per-skill counts of added, changed, and removed files.
+
+```bash
+python3 scripts/sync_obra_skills.py              # sync all mapped skill directories
+python3 scripts/sync_obra_skills.py --dry-run    # preview which skills will sync and list local files to replace
+```
 
 ## Sources & Upstream References
 
@@ -133,9 +148,19 @@ Built from five sources. Check each for updates:
 | UX guidelines + style catalog | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) |
 | Grid + design system precision | [job-ops `design-principles`](../job-ops/.codex/skills/design-principles/SKILL.md) |
 
+### `apple-grade-ui-system` — Synthesized (²)
+Built from four sources. Check each for updates:
+
+| Layer | Source |
+|---|---|
+| Creative direction | [anthropics/skills — frontend-design](https://github.com/anthropics/skills) |
+| Technical rigor baseline | [premium-frontend](skills/portable/premium-frontend/SKILL.md) |
+| Anti-pattern blocker set | [cyxzdev/Uncodixfy](https://github.com/cyxzdev/Uncodixfy) |
+| Structured QA dimensions | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) |
+
 ### Custom Skills — Original
 The following skills have no upstream and were authored for this repo:  
-`brainstorm-general`, `claude-md-improver`, `skill-architect`, `skill-selector-router`,  
+`brainstorm-general`, `claude-md-improver`, `skill-architect`, `skill-selector-router`, `technical-writing`,  
 all **Tools** skills, all **Integrations** skills.
 
 ## License
